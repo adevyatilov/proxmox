@@ -1,0 +1,26 @@
+---
+- name: Узнаем информацию о дистрибутиве
+  ansible.builtin.setup:
+    gather_subset:
+      - default_ipv4
+      - distribution
+      - distribution_release
+
+- name: Добавляем IP адрес proxmox в /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address.ljust(15) }}    proxmox"
+
+- name: Установка Proxmox на Debian
+  block:
+  - name: Создание сетевого моста
+    ansible.builtin.include_tasks:
+      file: bridge-Debian.yml
+  - name: Установка proxmox Debian
+    ansible.builtin.include_tasks:
+      file: proxmox-Debian.yml
+  - name: Отключаем режимы гибернации
+    ansible.builtin.include_tasks:
+      file: without_sleep-Debian.yml
+  when: ansible_distribution == 'Debian'

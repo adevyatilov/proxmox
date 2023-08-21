@@ -1,0 +1,48 @@
+---
+- name: Добавляем GPG ключ репозитория Proxmox
+  become: true
+  ansible.builtin.get_url:
+    url: http://download.proxmox.com/debian/proxmox-release-{{ ansible_distribution_release }}.gpg
+    dest: /etc/apt/trusted.gpg.d/proxmox-release-{{ ansible_distribution_release }}.gpg
+    mode: '0644'
+
+- name: Добавляем репозиторий Proxmox
+  become: true
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] http://download.proxmox.com/debian/pve {{ ansible_distribution_release }} pve-no-subscription
+    state: present
+    update_cache: true
+
+- name: Выполняем полное обновление системы
+  become: true
+  apt:
+    upgrade: full
+
+- name: Устанавливаем Proxmox
+  become: true
+  ansible.builtin.apt:
+    name:
+      - proxmox-ve
+      - postfix
+      - open-iscsi
+    state: present
+
+- name: Удаляем enterprise репозиторий
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+    state: absent
+
+- name: Отключение сообщения об отсутствии подписки в веб-интерфейсе (Proxmox версии 8)
+  become: true
+  ansible.builtin.replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: ".data.status.toLowerCase[()]{2} !== 'active'"
+    replace: ".data.status.toLowerCase() !== 'false'"
+    backup: true
+  notify: server reboot
+
+
+
+
+

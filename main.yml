@@ -1,0 +1,7 @@
+- name: Установка proxmox
+  hosts: proxmox
+  gather_facts: false
+  tasks:
+    - name:
+      ansible.builtin.include_role:
+        name: proxmox

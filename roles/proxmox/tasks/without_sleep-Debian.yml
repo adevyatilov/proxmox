@@ -1,0 +1,12 @@
+---
+- name: Отключаем режимы сна, гибернации Debian
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: true
+  with_items:
+    - sleep.target
+    - suspend.target
+    - hibernate.target
+    - hybrid-sleep.target
+  ignore_errors: true
